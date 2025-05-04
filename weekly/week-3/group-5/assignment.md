@@ -71,6 +71,7 @@ Qudo Merge는 PR 코드 변경을 AI가 더 정확하게 분석할 수 있도록
 
 ## 코드레벨 구현 파악
 
+
 - 관련 코드 위치
     - 파일 : `pr_agent/algo/git_patch_processing.py`
     - 함수 : `process_patch_lines()`
@@ -116,8 +117,8 @@ def process_patch_lines(patch_str, original_file_str, patch_extra_lines_before, 
                                 extended_start1, extended_start2 = extended_start1 + i, extended_start2 + i
                                 break
 
-                        # 새로운 추가 코드 상이 가능하다면 원래 코드와 세부 비교
-                        # 실제 변화가 있는 위치로 조정된 컨텍스트레이아웃 제공
+                        # 섹션 헤더(함수, 클래스 등)가 포함된 줄이 원본 파일에 있을 경우 
+                        # 해당 헤더가 포함된 정의줄부터 시작해서 컨텍스트 시작 지점을 조정
                 extended_patch_lines.append(line)
     except Exception as e:
         get_logger().warning(f"Failed to extend patch: {e}", artifact={"traceback": traceback.format_exc()})
@@ -128,6 +129,9 @@ def process_patch_lines(patch_str, original_file_str, patch_extra_lines_before, 
     return extended_patch_str
 
 ```
+
+![alt text](image-3.png)
+
 
 - 함수 동작
     1. `get_settings().config` 의 설정에서 `allow_dynamic_context`와 `patch_extra_lines_before_dynamic_context`값을 가져와서 판단
@@ -179,8 +183,7 @@ def process_patch_lines(patch_str, original_file_str, patch_extra_lines_before, 
     
     - 각 언어들의 파일에서 토큰 순으로 정렬한다
     - ex.  `[[file2.py, file.py],[file4.jsx, file3.js],[readme.md]]`
-5. **파일들의 문맥을 확장**
-    
+5. **파일들의 문맥을 확장**    
     ```python
     # generate a standard diff string, with patch extension
     patches_extended, total_tokens, patches_extended_tokens = pr_generate_extended_diff(
